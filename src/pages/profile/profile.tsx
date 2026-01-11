@@ -1,51 +1,66 @@
+import { FC, SyntheticEvent, useEffect, useCallback, useMemo } from 'react';
+
 import { ProfileUI } from '@ui-pages';
-import { FC, SyntheticEvent, useEffect, useState } from 'react';
+import { useDispatch, useSelector } from '../../services/store';
+import { selectUser } from '../../services/selectors';
+import { updateUser } from '../../services/slices/user';
+import { useForm } from '../../hooks/useForm';
 
 export const Profile: FC = () => {
-  /** TODO: взять переменную из стора */
-  const user = {
-    name: '',
-    email: ''
-  };
+  const dispatch = useDispatch();
+  const user = useSelector(selectUser);
 
-  const [formValue, setFormValue] = useState({
-    name: user.name,
-    email: user.email,
-    password: ''
-  });
+  const initialForm = useMemo(
+    () => ({
+      name: user?.name || '',
+      email: user?.email || '',
+      password: ''
+    }),
+    [user]
+  );
+
+  const [formValue, onChange, setFormValue] = useForm(initialForm);
 
   useEffect(() => {
-    setFormValue((prevState) => ({
-      ...prevState,
+    setFormValue((prev) => ({
+      ...prev,
       name: user?.name || '',
       email: user?.email || ''
     }));
-  }, [user]);
+  }, [user, setFormValue]);
 
   const isFormChanged =
-    formValue.name !== user?.name ||
-    formValue.email !== user?.email ||
-    !!formValue.password;
+    formValue.name !== (user?.name || '') ||
+    formValue.email !== (user?.email || '') ||
+    Boolean(formValue.password);
 
-  const handleSubmit = (e: SyntheticEvent) => {
-    e.preventDefault();
-  };
+  const handleSubmit = useCallback(
+    (e: SyntheticEvent) => {
+      e.preventDefault();
 
-  const handleCancel = (e: SyntheticEvent) => {
-    e.preventDefault();
-    setFormValue({
-      name: user.name,
-      email: user.email,
-      password: ''
-    });
-  };
+      if (!user) return;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormValue((prevState) => ({
-      ...prevState,
-      [e.target.name]: e.target.value
-    }));
-  };
+      const payload: { name?: string; email?: string; password?: string } = {};
+
+      if (formValue.name !== user.name) payload.name = formValue.name;
+      if (formValue.email !== user.email) payload.email = formValue.email;
+      if (formValue.password) payload.password = formValue.password;
+
+      if (!Object.keys(payload).length) return;
+
+      dispatch(updateUser(payload));
+      setFormValue((prev) => ({ ...prev, password: '' }));
+    },
+    [dispatch, formValue, user, setFormValue]
+  );
+
+  const handleCancel = useCallback(
+    (e: SyntheticEvent) => {
+      e.preventDefault();
+      setFormValue(initialForm);
+    },
+    [setFormValue, initialForm]
+  );
 
   return (
     <ProfileUI
@@ -53,9 +68,7 @@ export const Profile: FC = () => {
       isFormChanged={isFormChanged}
       handleCancel={handleCancel}
       handleSubmit={handleSubmit}
-      handleInputChange={handleInputChange}
+      handleInputChange={onChange}
     />
   );
-
-  return null;
 };

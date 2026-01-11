@@ -1,6 +1,6 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getFeedsApi, getOrdersApi } from '@api';
-import { TOrder, TOrdersData } from '@utils-types';
+import type { TOrder, TOrdersData } from '@utils-types';
 
 export type FeedsState = {
   feed: TOrdersData | null;
@@ -16,18 +16,28 @@ const initialState: FeedsState = {
   error: null
 };
 
-export const fetchFeed = createAsyncThunk('feeds/fetchFeed', async () => {
-  const data = await getFeedsApi();
-  return data;
-});
+const FEED_ERROR = 'Не удалось загрузить ленту';
+const ORDERS_ERROR = 'Не удалось загрузить заказы';
 
-export const fetchProfileOrders = createAsyncThunk(
-  'feeds/fetchProfileOrders',
-  async () => {
-    const data = await getOrdersApi();
-    return data;
-  }
+export const fetchFeed = createAsyncThunk<TOrdersData>(
+  'feeds/fetchFeed',
+  async () => getFeedsApi()
 );
+
+export const fetchProfileOrders = createAsyncThunk<TOrder[]>(
+  'feeds/fetchProfileOrders',
+  async () => getOrdersApi()
+);
+
+const setLoading = (state: FeedsState) => {
+  state.isLoading = true;
+  state.error = null;
+};
+
+const setError = (state: FeedsState, message: string) => {
+  state.isLoading = false;
+  state.error = message;
+};
 
 const feedsSlice = createSlice({
   name: 'feeds',
@@ -35,35 +45,24 @@ const feedsSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchFeed.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
+      // feed
+      .addCase(fetchFeed.pending, setLoading)
+      .addCase(fetchFeed.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.feed = action.payload;
       })
-      .addCase(
-        fetchFeed.fulfilled,
-        (state, action: PayloadAction<TOrdersData>) => {
-          state.isLoading = false;
-          state.feed = action.payload;
-        }
-      )
       .addCase(fetchFeed.rejected, (state, action) => {
+        setError(state, action.error.message || FEED_ERROR);
+      })
+
+      // profile orders
+      .addCase(fetchProfileOrders.pending, setLoading)
+      .addCase(fetchProfileOrders.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message || 'Не удалось загрузить ленту';
+        state.orders = action.payload;
       })
-      .addCase(fetchProfileOrders.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(
-        fetchProfileOrders.fulfilled,
-        (state, action: PayloadAction<TOrder[]>) => {
-          state.isLoading = false;
-          state.orders = action.payload;
-        }
-      )
       .addCase(fetchProfileOrders.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.error.message || 'Не удалось загрузить заказы';
+        setError(state, action.error.message || ORDERS_ERROR);
       });
   }
 });

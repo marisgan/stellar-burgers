@@ -1,8 +1,7 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { orderBurgerApi, getOrderByNumberApi } from '@api';
-import { TOrder } from '@utils-types';
+import type { TOrder } from '@utils-types';
 
-// Этот слайс отвечает за оформление заказа и детальную информацию по номеру
 export type OrderState = {
   orderRequest: boolean;
   orderData: TOrder | null;
@@ -15,20 +14,28 @@ const initialState: OrderState = {
   lastError: null
 };
 
-export const createOrder = createAsyncThunk(
+const CREATE_ORDER_ERROR = 'Не удалось оформить заказ';
+const FETCH_ORDER_ERROR = 'Не удалось получить заказ';
+
+export const createOrder = createAsyncThunk<TOrder, string[]>(
   'order/create',
-  async (ingredientIds: string[]) => {
-    // Отправляю заказ на сервер
+  async (ingredientIds) => {
     const data = await orderBurgerApi(ingredientIds);
     return data.order;
   }
 );
 
-export const fetchOrderByNumber = createAsyncThunk(
+export const fetchOrderByNumber = createAsyncThunk<TOrder, number>(
   'order/fetchByNumber',
-  async (number: number) => {
+  async (number, { rejectWithValue }) => {
     const data = await getOrderByNumberApi(number);
-    return data.orders[0];
+    const order = data.orders?.[0];
+
+    if (!order) {
+      return rejectWithValue(FETCH_ORDER_ERROR);
+    }
+
+    return order;
   }
 );
 
@@ -43,32 +50,32 @@ const orderSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // create order
       .addCase(createOrder.pending, (state) => {
         state.orderRequest = true;
         state.lastError = null;
       })
-      .addCase(
-        createOrder.fulfilled,
-        (state, action: PayloadAction<TOrder>) => {
-          state.orderRequest = false;
-          state.orderData = action.payload;
-        }
-      )
+      .addCase(createOrder.fulfilled, (state, action) => {
+        state.orderRequest = false;
+        state.orderData = action.payload;
+      })
       .addCase(createOrder.rejected, (state, action) => {
         state.orderRequest = false;
-        state.lastError = action.error.message || 'Не удалось оформить заказ';
+        state.lastError = action.error.message || CREATE_ORDER_ERROR;
       })
+
+      // fetch by number
       .addCase(fetchOrderByNumber.pending, (state) => {
         state.lastError = null;
       })
-      .addCase(
-        fetchOrderByNumber.fulfilled,
-        (state, action: PayloadAction<TOrder>) => {
-          state.orderData = action.payload;
-        }
-      )
+      .addCase(fetchOrderByNumber.fulfilled, (state, action) => {
+        state.orderData = action.payload;
+      })
       .addCase(fetchOrderByNumber.rejected, (state, action) => {
-        state.lastError = action.error.message || 'Не удалось получить заказ';
+        const payloadMessage =
+          typeof action.payload === 'string' ? action.payload : null;
+        state.lastError =
+          payloadMessage || action.error.message || FETCH_ORDER_ERROR;
       });
   }
 });

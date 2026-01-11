@@ -1,8 +1,7 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getIngredientsApi } from '@api';
-import { TIngredient } from '@utils-types';
+import type { TIngredient } from '@utils-types';
 
-// Этот слайс отвечает за загрузку и хранение списка ингредиентов
 export type IngredientsState = {
   items: TIngredient[];
   isLoading: boolean;
@@ -15,21 +14,18 @@ export const ingredientsInitialState: IngredientsState = {
   error: null
 };
 
-export const fetchIngredients = createAsyncThunk(
+const INGREDIENTS_ERROR = 'Ошибка загрузки ингредиентов';
+
+export const fetchIngredients = createAsyncThunk<TIngredient[]>(
   'ingredients/fetchAll',
-  async () => {
-    // Запрашиваю ингредиенты с сервера
-    const items = await getIngredientsApi();
-    return items;
-  }
+  async () => getIngredientsApi()
 );
 
 const ingredientsSlice = createSlice({
   name: 'ingredients',
   initialState: ingredientsInitialState,
   reducers: {
-    // Хелпер на случай, если понадобится вручную установить список
-    setIngredients(state, action: PayloadAction<TIngredient[]>) {
+    setIngredients(state, action) {
       state.items = action.payload;
     }
   },
@@ -39,16 +35,13 @@ const ingredientsSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(
-        fetchIngredients.fulfilled,
-        (state, action: PayloadAction<TIngredient[]>) => {
-          state.isLoading = false;
-          state.items = action.payload;
-        }
-      )
+      .addCase(fetchIngredients.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.items = action.payload;
+      })
       .addCase(fetchIngredients.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message || 'Ошибка загрузки ингредиентов';
+        state.error = action.error.message || INGREDIENTS_ERROR;
       });
   }
 });

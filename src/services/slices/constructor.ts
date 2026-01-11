@@ -1,6 +1,6 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { TConstructorIngredient, TIngredient } from '@utils-types';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { v4 as uuidv4 } from 'uuid';
+import type { TConstructorIngredient, TIngredient } from '@utils-types';
 
 export type ConstructorState = {
   bun: TConstructorIngredient | null;
@@ -12,49 +12,56 @@ export const constructorInitialState: ConstructorState = {
   ingredients: []
 };
 
+type MovePayload = { fromIndex: number; toIndex: number };
+
 const constructorSlice = createSlice({
   name: 'constructor',
   initialState: constructorInitialState,
   reducers: {
     addIngredient: {
-      reducer(
-        state,
-        action: PayloadAction<{ ingredient: TConstructorIngredient }>
-      ) {
-        const { ingredient } = action.payload;
+      reducer(state, action: PayloadAction<TConstructorIngredient>) {
+        const ingredient = action.payload;
+
         if (ingredient.type === 'bun') {
           state.bun = ingredient;
-        } else {
-          state.ingredients.push(ingredient);
+          return;
         }
+
+        state.ingredients.push(ingredient);
       },
-      prepare(payload: { ingredient: TIngredient }) {
-        const { ingredient } = payload;
+      prepare(ingredient: TIngredient) {
         return {
-          payload: {
-            ingredient: { ...ingredient, id: uuidv4() }
-          }
+          payload: { ...ingredient, id: uuidv4() } as TConstructorIngredient
         };
       }
     },
-    removeIngredient(state, action: PayloadAction<{ id: string }>) {
-      state.ingredients = state.ingredients.filter(
-        (i) => i.id !== action.payload.id
-      );
+
+    removeIngredient(state, action: PayloadAction<string>) {
+      const id = action.payload;
+      state.ingredients = state.ingredients.filter((item) => item.id !== id);
     },
-    moveIngredient(
-      state,
-      action: PayloadAction<{ fromIndex: number; toIndex: number }>
-    ) {
+
+    moveIngredient(state, action: PayloadAction<MovePayload>) {
       const { fromIndex, toIndex } = action.payload;
-      const items = [...state.ingredients];
-      const [moved] = items.splice(fromIndex, 1);
-      items.splice(toIndex, 0, moved);
-      state.ingredients = items;
+
+      // защита от некорректных индексов
+      if (
+        fromIndex === toIndex ||
+        fromIndex < 0 ||
+        toIndex < 0 ||
+        fromIndex >= state.ingredients.length ||
+        toIndex >= state.ingredients.length
+      ) {
+        return;
+      }
+
+      const [moved] = state.ingredients.splice(fromIndex, 1);
+      state.ingredients.splice(toIndex, 0, moved);
     },
-    clearConstructor(state) {
-      state.bun = null;
-      state.ingredients = [];
+
+    clearConstructor() {
+      // вернуть новый объект, чтобы гарантировать сброс
+      return constructorInitialState;
     }
   }
 });
@@ -65,4 +72,5 @@ export const {
   moveIngredient,
   clearConstructor
 } = constructorSlice.actions;
+
 export default constructorSlice.reducer;
