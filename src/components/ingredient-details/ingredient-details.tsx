@@ -16,5 +16,15 @@ export const IngredientDetails: FC = () => {
     return <Preloader />;
   }
 
-  return <IngredientDetailsUI ingredientData={ingredientData} />;
+  return (
+    <>
+      <h3
+        className='text text_type_main-large'
+        style={{ textAlign: 'center', marginTop: 30 }}
+      >
+        Детали ингредиента
+      </h3>
+      <IngredientDetailsUI ingredientData={ingredientData} />;
+    </>
+  );
 };

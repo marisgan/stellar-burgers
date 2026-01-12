@@ -64,5 +64,15 @@ export const OrderInfo: FC = () => {
 
   if (!orderInfo) return <Preloader />;
 
-  return <OrderInfoUI orderInfo={orderInfo} />;
+  return (
+    <>
+      <p
+        className='text text_type_digits-default'
+        style={{ textAlign: 'center', marginTop: 30 }}
+      >
+        #{number}
+      </p>
+      <OrderInfoUI orderInfo={orderInfo} />;
+    </>
+  );
 };

@@ -1,11 +1,10 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { v4 as uuidv4 } from 'uuid';
-import type { TConstructorIngredient, TIngredient } from '@utils-types';
-
-export type ConstructorState = {
-  bun: TConstructorIngredient | null;
-  ingredients: TConstructorIngredient[];
-};
+import type {
+  TConstructorIngredient,
+  TIngredient,
+  ConstructorState
+} from '@utils-types';
 
 export const constructorInitialState: ConstructorState = {
   bun: null,
@@ -31,7 +30,7 @@ const constructorSlice = createSlice({
       },
       prepare(ingredient: TIngredient) {
         return {
-          payload: { ...ingredient, id: uuidv4() } as TConstructorIngredient
+          payload: { ...ingredient, id: uuidv4() }
         };
       }
     },
@@ -60,7 +59,6 @@ const constructorSlice = createSlice({
     },
 
     clearConstructor() {
-      // вернуть новый объект, чтобы гарантировать сброс
       return constructorInitialState;
     }
   }
