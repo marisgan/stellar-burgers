@@ -1,6 +1,7 @@
-import { SELECTORS } from './selectors';
+/// <reference types="cypress" />
 
-/// <reference types='cypress' />
+import { ALIASES } from './aliases'
+import { SELECTORS } from './selectors';
 
 const apiBaseUrl = Cypress.env('apiBaseUrl');
 
@@ -11,15 +12,17 @@ const setAuth = (win: Window) => {
 
 Cypress.Commands.add('mockConstructorApi', () => {
   cy.intercept('GET', `${apiBaseUrl}/ingredients`, { fixture: 'ingredients.json' }).as(
-    'getIngredients'
+    ALIASES.getIngredients
   );
 
-  cy.intercept('GET', `${apiBaseUrl}/auth/user`, { fixture: 'user.json' }).as('getUser');
+  cy.intercept('GET', `${apiBaseUrl}/auth/user`, { fixture: 'user.json' }).as(
+    ALIASES.getUser
+  );
 
   cy.intercept('POST', `${apiBaseUrl}/orders`, (req) => {
     expect(req.body).to.have.property('ingredients');
     req.reply({ fixture: 'order.json' });
-  }).as('createOrder');
+  }).as(ALIASES.createOrder);
 
   cy.intercept('POST', `${apiBaseUrl}/auth/token`, {
     statusCode: 200,
@@ -28,12 +31,12 @@ Cypress.Commands.add('mockConstructorApi', () => {
       accessToken: 'Bearer mocked-access-token',
       refreshToken: 'mocked-refresh-token'
     }
-  }).as('refreshToken');
+  }).as(ALIASES.refreshToken);
 });
 
 Cypress.Commands.add('visitHomeWithAuth', () => {
   cy.visit('/', { onBeforeLoad: setAuth });
-  cy.wait(['@getIngredients', '@getUser']);
+  cy.wait([`@${ALIASES.getIngredients}`, `@${ALIASES.getUser}`]);
 });
 
 Cypress.Commands.add('addIngredientToConstructor', (name: string) => {

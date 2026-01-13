@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 
-import { SELECTORS } from '../support/selectors';
 import { ALIASES } from '../support/aliases';
+import { SELECTORS } from '../support/selectors';
 
 const INGREDIENTS = {
   bun: 'Краторная булка',
