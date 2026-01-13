@@ -1,14 +1,12 @@
 {
-  // расширяем основной конфиг всего проекта
   "extends": "../tsconfig.json",
   "compilerOptions": {
+    "allowJs": true,
     "noEmit": true,
-    // явно указываем что будем использовать типы из cypress
-    // чтобы избежать пересечения с типами jest, если мы его используем
-    "types": ["cypress"]
+    "isolatedModules": false,
+    "types": ["cypress"],
+    "lib": ["es2021", "dom"]
   },
-  "include": [
-    "../node_modules/cypress",
-    "./**/*.ts"
-  ]
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": []
 }

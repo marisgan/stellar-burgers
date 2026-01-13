@@ -93,7 +93,15 @@ const config: JestConfigWithTsJest = {
   // ],
 
   // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
-  // moduleNameMapper: {},
+  moduleNameMapper: {
+    '^@api$': '<rootDir>/src/utils/burger-api',
+    '^@utils-types$': '<rootDir>/src/utils/types',
+    '^@ui-pages$': '<rootDir>/src/ui/pages',
+    '^@ui$': '<rootDir>/src/components/ui',
+    '^@pages$': '<rootDir>/src/pages',
+    '^@components$': '<rootDir>/src/components',
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy'
+  },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
   // modulePathIgnorePatterns: [],
