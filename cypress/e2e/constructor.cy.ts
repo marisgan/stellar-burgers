@@ -1,6 +1,7 @@
-import { SELECTORS } from '../support/selectors';
+/// <reference types="cypress" />
 
-const apiBaseUrl = Cypress.env('apiBaseUrl');
+import { SELECTORS } from '../support/selectors';
+import { ALIASES } from '../support/aliases';
 
 const INGREDIENTS = {
   bun: 'Краторная булка',
@@ -8,73 +9,10 @@ const INGREDIENTS = {
   sauce: 'Соус с шипами антории'
 } as const;
 
-const aliases = {
-  getIngredients: 'getIngredients',
-  getUser: 'getUser',
-  createOrder: 'createOrder',
-  refreshToken: 'refreshToken'
-} as const;
-
-const setAuth = (win: Window) => {
-  win.localStorage.setItem('refreshToken', 'test-refresh-token');
-  win.document.cookie = 'accessToken=Bearer test-access-token';
-};
-
-const visitHome = () => {
-  cy.visit('/', { onBeforeLoad: setAuth });
-  cy.wait([`@${aliases.getIngredients}`, `@${aliases.getUser}`]);
-};
-
-const addIngredientToConstructor = (name: string) => {
-  cy.contains(SELECTORS.ingredientCard, name)
-    .should('exist')
-    .within(() => {
-      cy.contains('button', 'Добавить').click();
-    });
-};
-
-const openIngredientModal = (name: string) => {
-  cy.contains(SELECTORS.ingredientCard, name)
-    .find(SELECTORS.ingredientLink)
-    .click();
-  cy.get(SELECTORS.modal).should('be.visible').and('contain.text', name);
-};
-
-const closeModalByButton = () => {
-  cy.get(SELECTORS.modalClose).click();
-  cy.get(SELECTORS.modal).should('not.exist');
-};
-
-const closeModalByOverlay = () => {
-  cy.get(SELECTORS.modalOverlay).click({ force: true });
-  cy.get(SELECTORS.modal).should('not.exist');
-};
-
 describe('Страница конструктора бургера', () => {
   beforeEach(() => {
-    cy.intercept('GET', `${apiBaseUrl}/ingredients`, { fixture: 'ingredients.json' }).as(
-      aliases.getIngredients
-    );
-
-    cy.intercept('GET', `${apiBaseUrl}/auth/user`, { fixture: 'user.json' }).as(
-      aliases.getUser
-    );
-
-    cy.intercept('POST', `${apiBaseUrl}/orders`, (req) => {
-      expect(req.body).to.have.property('ingredients');
-      req.reply({ fixture: 'order.json' });
-    }).as(aliases.createOrder);
-
-    cy.intercept('POST', `${apiBaseUrl}/auth/token`, {
-      statusCode: 200,
-      body: {
-        success: true,
-        accessToken: 'Bearer mocked-access-token',
-        refreshToken: 'mocked-refresh-token'
-      }
-    }).as(aliases.refreshToken);
-
-    visitHome();
+    cy.mockConstructorApi();
+    cy.visitHomeWithAuth();
   });
 
   afterEach(() => {
@@ -82,9 +20,9 @@ describe('Страница конструктора бургера', () => {
     cy.window().then((win) => win.localStorage.clear());
   });
 
-  it('Добавление ингредиентов из списка в конструктор (булка + начинка)', () => {
-    addIngredientToConstructor(INGREDIENTS.bun);
-    addIngredientToConstructor(INGREDIENTS.filling);
+  it('добавляет булку и начинку в конструктор', () => {
+    cy.addIngredientToConstructor(INGREDIENTS.bun);
+    cy.addIngredientToConstructor(INGREDIENTS.filling);
 
     cy.get(SELECTORS.constructor).should('contain.text', `${INGREDIENTS.bun} (верх)`);
     cy.get(SELECTORS.constructorItem)
@@ -94,32 +32,31 @@ describe('Страница конструктора бургера', () => {
     cy.get(SELECTORS.constructor).should('contain.text', `${INGREDIENTS.bun} (низ)`);
   });
 
-  it('Открытие модалки ингредиента и закрытие по крестику и по оверлею', () => {
-    openIngredientModal(INGREDIENTS.bun);
-    closeModalByButton();
+  it('открывает и закрывает модальное окно ингредиента по кнопке и оверлею', () => {
+    cy.openIngredientModal(INGREDIENTS.bun);
+    cy.closeModalByButton();
 
-    visitHome();
-    cy.get(SELECTORS.ingredientCard).should('have.length.at.least', 1);
+    cy.visitHomeWithAuth();
 
-    openIngredientModal(INGREDIENTS.filling);
-    closeModalByOverlay();
+    cy.openIngredientModal(INGREDIENTS.filling);
+    cy.closeModalByOverlay();
   });
 
-  it('Закрытие модалки ингредиента по клавише Escape', () => {
-    openIngredientModal(INGREDIENTS.bun);
+  it('закрывает модальное окно ингредиента по клавише Escape', () => {
+    cy.openIngredientModal(INGREDIENTS.bun);
 
     cy.get('body').type('{esc}');
     cy.get(SELECTORS.modal).should('not.exist');
   });
 
-  it('Создание заказа и очищение конструктора после закрытия модалки', () => {
-    addIngredientToConstructor(INGREDIENTS.bun);
-    addIngredientToConstructor(INGREDIENTS.filling);
-    addIngredientToConstructor(INGREDIENTS.sauce);
+  it('создает заказ и очищает конструктор после закрытия модалки', () => {
+    cy.addIngredientToConstructor(INGREDIENTS.bun);
+    cy.addIngredientToConstructor(INGREDIENTS.filling);
+    cy.addIngredientToConstructor(INGREDIENTS.sauce);
 
     cy.contains('button', 'Оформить заказ').click();
 
-    cy.wait(`@${aliases.createOrder}`).then(({ request, response }) => {
+    cy.wait(`@${ALIASES.createOrder}`).then(({ request, response }) => {
       const body = request.body as { ingredients: string[] };
       expect(body.ingredients).to.have.length(4);
 
@@ -131,7 +68,7 @@ describe('Страница конструктора бургера', () => {
     cy.get(SELECTORS.modal).should('be.visible');
     cy.get(SELECTORS.orderNumber).should('have.text', '654321');
 
-    closeModalByButton();
+    cy.closeModalByButton();
 
     cy.get(SELECTORS.constructorItem).should('have.length', 0);
     cy.get(SELECTORS.constructor)

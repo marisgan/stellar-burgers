@@ -1,37 +1,63 @@
-/// <reference types="cypress" />
-// ***********************************************
-// This example commands.ts shows you how to
-// create various custom commands and overwrite
-// existing commands.
-//
-// For more comprehensive examples of custom
-// commands please read more here:
-// https://on.cypress.io/custom-commands
-// ***********************************************
-//
-//
-// -- This is a parent command --
-// Cypress.Commands.add('login', (email, password) => { ... })
-//
-//
-// -- This is a child command --
-// Cypress.Commands.add('drag', { prevSubject: 'element'}, (subject, options) => { ... })
-//
-//
-// -- This is a dual command --
-// Cypress.Commands.add('dismiss', { prevSubject: 'optional'}, (subject, options) => { ... })
-//
-//
-// -- This will overwrite an existing command --
-// Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
-//
-// declare global {
-//   namespace Cypress {
-//     interface Chainable {
-//       login(email: string, password: string): Chainable<void>
-//       drag(subject: string, options?: Partial<TypeOptions>): Chainable<Element>
-//       dismiss(subject: string, options?: Partial<TypeOptions>): Chainable<Element>
-//       visit(originalFn: CommandOriginalFn, url: string, options: Partial<VisitOptions>): Chainable<Element>
-//     }
-//   }
-// }
+import { SELECTORS } from './selectors';
+
+/// <reference types='cypress' />
+
+const apiBaseUrl = Cypress.env('apiBaseUrl');
+
+const setAuth = (win: Window) => {
+  win.localStorage.setItem('refreshToken', 'test-refresh-token');
+  win.document.cookie = 'accessToken=Bearer test-access-token';
+};
+
+Cypress.Commands.add('mockConstructorApi', () => {
+  cy.intercept('GET', `${apiBaseUrl}/ingredients`, { fixture: 'ingredients.json' }).as(
+    'getIngredients'
+  );
+
+  cy.intercept('GET', `${apiBaseUrl}/auth/user`, { fixture: 'user.json' }).as('getUser');
+
+  cy.intercept('POST', `${apiBaseUrl}/orders`, (req) => {
+    expect(req.body).to.have.property('ingredients');
+    req.reply({ fixture: 'order.json' });
+  }).as('createOrder');
+
+  cy.intercept('POST', `${apiBaseUrl}/auth/token`, {
+    statusCode: 200,
+    body: {
+      success: true,
+      accessToken: 'Bearer mocked-access-token',
+      refreshToken: 'mocked-refresh-token'
+    }
+  }).as('refreshToken');
+});
+
+Cypress.Commands.add('visitHomeWithAuth', () => {
+  cy.visit('/', { onBeforeLoad: setAuth });
+  cy.wait(['@getIngredients', '@getUser']);
+});
+
+Cypress.Commands.add('addIngredientToConstructor', (name: string) => {
+  cy.contains(SELECTORS.ingredientCard, name)
+    .should('exist')
+    .within(() => {
+      cy.contains('button', 'Добавить').click();
+    });
+});
+
+Cypress.Commands.add('openIngredientModal', (name: string) => {
+  cy.contains(SELECTORS.ingredientCard, name)
+    .find(SELECTORS.ingredientLink)
+    .click();
+
+  cy.get(SELECTORS.modal).should('be.visible').and('contain.text', name);
+});
+
+Cypress.Commands.add('closeModalByButton', () => {
+  cy.get(SELECTORS.modalClose).click();
+  cy.get(SELECTORS.modal).should('not.exist');
+});
+
+Cypress.Commands.add('closeModalByOverlay', () => {
+  cy.get(SELECTORS.modalOverlay).click({ force: true });
+  cy.get(SELECTORS.modal).should('not.exist');
+});
