@@ -9,7 +9,7 @@ export type FeedsState = {
   error: string | null;
 };
 
-const initialState: FeedsState = {
+export const initialState: FeedsState = {
   feed: null,
   orders: [],
   isLoading: false,

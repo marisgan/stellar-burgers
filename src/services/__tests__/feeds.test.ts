@@ -1,16 +1,9 @@
 import reducer from '../slices/feeds';
-import { fetchFeed, fetchProfileOrders } from '../slices/feeds';
+import { fetchFeed, fetchProfileOrders, initialState } from '../slices/feeds';
 
 import type { TOrder, TOrdersData } from '@utils-types';
 
 describe('feeds slice reducer', () => {
-  const initialState = {
-    feed: null,
-    orders: [],
-    isLoading: false,
-    error: null
-  };
-
   it('should set isLoading=true and clear error on fetchFeed.pending', () => {
     const nextState = reducer(
       initialState,
