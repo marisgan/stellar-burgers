@@ -1,0 +1,13 @@
+{
+  "success": true,
+  "name": "Краторный астро-бургер",
+  "order": {
+    "_id": "order-1",
+    "status": "done",
+    "name": "Краторный астро-бургер",
+    "createdAt": "2026-12-01T12:00:00.000Z",
+    "updatedAt": "2026-12-01T12:05:00.000Z",
+    "number": 654321,
+    "ingredients": ["bun-1", "main-1", "sauce-1"]
+  }
+}

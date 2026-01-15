@@ -1,0 +1,83 @@
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "bun-1",
+      "name": "Краторная булка",
+      "type": "bun",
+      "proteins": 80,
+      "fat": 24,
+      "carbohydrates": 53,
+      "calories": 420,
+      "price": 125,
+      "image": "https://code.s3.yandex.net/react/code/bun-02.png",
+      "image_large": "https://code.s3.yandex.net/react/code/bun-02-large.png",
+      "image_mobile": "https://code.s3.yandex.net/react/code/bun-02-mobile.png"
+    },
+    {
+      "_id": "bun-2",
+      "name": "Флюоресцентная булка",
+      "type": "bun",
+      "proteins": 79,
+      "fat": 33,
+      "carbohydrates": 44,
+      "calories": 643,
+      "price": 155,
+      "image": "https://code.s3.yandex.net/react/code/bun-01.png",
+      "image_large": "https://code.s3.yandex.net/react/code/bun-01-large.png",
+      "image_mobile": "https://code.s3.yandex.net/react/code/bun-01-mobile.png"
+    },
+    {
+      "_id": "sauce-1",
+      "name": "Соус с шипами антории",
+      "type": "sauce",
+      "proteins": 50,
+      "fat": 20,
+      "carbohydrates": 40,
+      "calories": 73,
+      "price": 88,
+      "image": "https://code.s3.yandex.net/react/code/sauce-02.png",
+      "image_large": "https://code.s3.yandex.net/react/code/sauce-02-large.png",
+      "image_mobile": "https://code.s3.yandex.net/react/code/sauce-02-mobile.png"
+    },
+    {
+      "_id": "sauce-2",
+      "name": "Фирменный соус Galactic",
+      "type": "sauce",
+      "proteins": 24,
+      "fat": 18,
+      "carbohydrates": 19,
+      "calories": 43,
+      "price": 50,
+      "image": "https://code.s3.yandex.net/react/code/sauce-04.png",
+      "image_large": "https://code.s3.yandex.net/react/code/sauce-04-large.png",
+      "image_mobile": "https://code.s3.yandex.net/react/code/sauce-04-mobile.png"
+    },
+    {
+      "_id": "main-1",
+      "name": "Мясо бессмертных моллюсков",
+      "type": "main",
+      "proteins": 80,
+      "fat": 24,
+      "carbohydrates": 53,
+      "calories": 420,
+      "price": 300,
+      "image": "https://code.s3.yandex.net/react/code/meat-02.png",
+      "image_large": "https://code.s3.yandex.net/react/code/meat-02-large.png",
+      "image_mobile": "https://code.s3.yandex.net/react/code/meat-02-mobile.png"
+    },
+    {
+      "_id": "main-2",
+      "name": "Филе Люминесцентного тетраодонтимформа",
+      "type": "main",
+      "proteins": 44,
+      "fat": 26,
+      "carbohydrates": 85,
+      "calories": 643,
+      "price": 988,
+      "image": "https://code.s3.yandex.net/react/code/meat-03.png",
+      "image_large": "https://code.s3.yandex.net/react/code/meat-03-large.png",
+      "image_mobile": "https://code.s3.yandex.net/react/code/meat-03-mobile.png"
+    }
+  ]
+}
